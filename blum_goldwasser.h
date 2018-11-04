@@ -1,3 +1,6 @@
+#ifndef BLUM_GOLDWASSER_CIPHER_H
+#define BLUM_GOLDWASSER_CIPHER_H
+
 #include <bitset>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <cstdlib>
@@ -17,7 +20,6 @@ int mod_inverse(int a, int mod) {
 
 // ============================================================================
 namespace BG {  // Blum-Goldwasser 
-
 class Cipher {
  public:
   Cipher(int p, int q) : p_(p), q_(q) { N_ = p_ * q_; }
@@ -37,7 +39,6 @@ class Cipher {
   template <std::size_t size>
   std::bitset<size> decrypt(std::bitset<size> ciphertext, int X);
 
-
  private:
   // decryption helper - arbitrary precision modular arithmetic
   int compute_r(int prime, int len, int y);
@@ -47,7 +48,6 @@ class Cipher {
   const int q_;
   int N_;
 };
-
 
 // Class Definitions
 // ----------------------------------------------------------------------------
@@ -67,8 +67,6 @@ std::tuple<std::bitset<size>, unsigned long long> Cipher::encrypt(
     X = (X * X) % N_;
   }
 
-  std::cout << "Random bits: " << random_bits << "\n";
-
   std::bitset<size> ciphertext = plaintext ^ random_bits;
   return std::make_tuple(ciphertext, X);
 }
@@ -80,12 +78,8 @@ std::bitset<size> Cipher::decrypt(std::bitset<size> ciphertext, int XL) {
   // calculate the X0 that the encryptor used
   int rp = this->compute_r(p_, ciphertext.size(), XL);
   int rq = this->compute_r(q_, ciphertext.size(), XL);
-  std::cout << "rp: " << rp << "\n";
-  std::cout << "rq: " << rq << "\n";
   unsigned long long X;
   X = ((q_ * mod_inverse(q_, p_)) * rp + p_ * mod_inverse(p_, q_) * rq) % N_;
-  std::cout << "X: " << X << "\n";
-
 
   // Use X0 to initiate Blum Blum Shub random bit generation
   std::bitset<size> random_bits;
@@ -93,8 +87,6 @@ std::bitset<size> Cipher::decrypt(std::bitset<size> ciphertext, int XL) {
     random_bits[i] = X & 1;
     X = (X * X) % N_;
   }
-
-  std::cout << "Random bits: " << random_bits << "\n";
 
   return ciphertext ^ random_bits;
 }
@@ -107,8 +99,6 @@ int Cipher::compute_r(int prime, int len, int y) {
   mp::cpp_int r = mp::powm(mp::cpp_int(y), exp, prime);
   return static_cast<int>(r);
 }
-
-
-
-
 } // namespace BG
+
+#endif // BLUM_GOLDWASSER_CIPHER_H
